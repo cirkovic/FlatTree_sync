@@ -184,7 +184,7 @@ hltPrescale_(iConfig,consumesCollector(),*this)
    fillPUInfo_           = iConfig.getParameter<bool>("fillPUInfo");
    isData_               = iConfig.getParameter<bool>("isData");
    applyMETFilters_      = iConfig.getParameter<bool>("applyMETFilters");
-   triggerBits_          = consumes<edm::TriggerResults>(edm::InputTag(std::string("TriggerResults"),std::string(""),std::string("HLT")));
+   triggerBits_          = consumes<edm::TriggerResults>(edm::InputTag(std::string("TriggerResults"),std::string(""),std::string("HLT2")));
    triggerBitsPAT_       = consumes<edm::TriggerResults>(edm::InputTag(std::string("TriggerResults"),std::string(""),std::string("PAT")));
    triggerObjects_       = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("objects"));
    triggerPrescales_     = consumes<pat::PackedTriggerPrescales>(edm::InputTag(std::string("patTrigger")));
@@ -285,6 +285,8 @@ void FlatTreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
    using namespace edm;
 
    hcount->SetBinContent(1,hcount->GetBinContent(1)+1);
+   if (((int)hcount->GetBinContent(1))%100 == 0)
+       std::cout << "CIRKOVIC[hcount]: " << hcount->GetBinContent(1) << std::endl;
 
    ftree->Init();
 
@@ -295,7 +297,7 @@ void FlatTreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
    // LHE
    edm::Handle<LHEEventProduct> lheEventProduct;
    if( !isData_ && fillMCScaleWeight_ ) iEvent.getByToken(LHEEventProductToken_,lheEventProduct);
-
+   /**/
    // Gen particles
    edm::Handle<reco::GenParticleCollection> genParticlesHandle;
    if( !isData_ ) iEvent.getByToken(genParticlesToken_,genParticlesHandle);
@@ -308,18 +310,26 @@ void FlatTreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
    // Primary vertex
    edm::Handle<reco::VertexCollection> vertices;
    iEvent.getByToken(vertexToken_,vertices);
-
+   ////////////////////////////////////////////////////////////////////
+   ////////////////////////////////////////////////////////////////////
    // Triggers
    edm::Handle<edm::TriggerResults> triggerBits;
    iEvent.getByToken(triggerBits_,triggerBits);
    const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
-
+   ////////////////////////////////////////////////////////////////////
+   ////////////////////////////////////////////////////////////////////
+//   // Triggers
+//   edm::Handle<edm::TriggerResults> triggerBits;
+//   //iEvent.getByToken(triggerBits_,triggerBits);
+//   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
+   ////////////////////////////////////////////////////////////////////
+   ////////////////////////////////////////////////////////////////////
    edm::Handle<bool> badMuonFilter;
    edm::Handle<bool> badChargedCandidateFilter;
 
    iEvent.getByToken(badMuonFilterToken_,badMuonFilter);
    iEvent.getByToken(badChargedCandidateFilterToken_,badChargedCandidateFilter);
-
+   //
    edm::Handle<edm::TriggerResults> triggerBitsPAT;
    iEvent.getByToken(triggerBitsPAT_,triggerBitsPAT);
    edm::TriggerNames namesPAT;
@@ -362,7 +372,7 @@ void FlatTreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
    ftree->met_cov10 = (*metCovPtr)(1,0);
    ftree->met_cov01 = (*metCovPtr)(0,1);
    ftree->met_cov11 = (*metCovPtr)(1,1);
-
+   //
    // Jets
    edm::Handle<pat::JetCollection> jets;
    iEvent.getByToken(jetToken_,jets);
@@ -460,9 +470,12 @@ void FlatTreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
    
    edm::Handle<std::vector<int> > genTTXCHadBHadronId;
    iEvent.getByToken(genTTXCHadBHadronIdToken_,genTTXCHadBHadronId);
+
+   //
    
    ftree->ev_run = iEvent.id().run();
    ftree->ev_id = iEvent.id().event();
+   //std::cout << "CIRKOVIC[ev_id]: " << ftree->ev_id << std::endl;
    ftree->ev_lumi = iEvent.id().luminosityBlock();
 
    float mc_weight = 1.;
@@ -625,13 +638,14 @@ void FlatTreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		     pass_badChargedCandidateFilter);
 
    //std::cout << "\n === TRIGGER PATHS === " << std::endl;
+   /**/
    for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i)
      {
         //std::cout << "[" << i << "] " << (triggerBits->accept(i) ? "1" : "0") << "  " << names.triggerName(i)  << std::endl;
 
         std::string triggerName = names.triggerName(i);
 
-        if( !foundTrigger(triggerName) ) continue;
+        //CIRKOVICif( !foundTrigger(triggerName) ) continue;
 
         ftree->trigger.push_back(i);
         ftree->trigger_name.push_back(triggerName);
@@ -766,6 +780,7 @@ void FlatTreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	
         ftree->triggerobject_n = ftree->triggerobject_pt.size();
      }
+   /**/
    
    // =========== END OF TRIGGER ==========
    //
@@ -957,7 +972,7 @@ void FlatTreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
         const pat::Electron& elec = electronsPAT->at(ie);
 
         // Skimming electrons with pT < 5 GeV.
-        if (elec.pt() < 5) continue;
+        //CIRKOVICif (elec.pt() < 5) continue;
 
         ftree->el_pt.push_back(elec.pt());
         ftree->el_eta.push_back(elec.eta());
@@ -1214,7 +1229,7 @@ void FlatTreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
         const pat::Muon& muon = muons->at(im);
 
         // Skimming muons with pT < 5 GeV.
-        if (muon.pt() < 5) continue;
+        //CIRKOVICif (muon.pt() < 5) continue;
 	
         ftree->mu_pt.push_back(muon.pt());
         ftree->mu_eta.push_back(muon.eta());
@@ -1596,7 +1611,7 @@ void FlatTreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
         const pat::Tau& tau = taus->at(it);
 
         // Skimming taus with pT < 5 GeV. (should do nothing for miniAOD where pT > 18 GeV is applied)
-        if (tau.pt() < 5) continue;
+        //CIRKOVICif (tau.pt() < 5) continue;
 
         ftree->tau_pt.push_back(tau.pt());
         ftree->tau_eta.push_back(tau.eta());
@@ -1727,7 +1742,7 @@ void FlatTreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	  {
 	     const reco::Candidate *daug = jet.daughter(idaug);
 	     int charge = daug->charge();
-	     if( charge == 0 ) continue;	     
+	     //CIRKOVICif( charge == 0 ) continue;	     
 	     
 	     float daugPx = daug->px();
 	     float daugPy = daug->py();
@@ -1747,7 +1762,7 @@ void FlatTreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	  {
 	     const reco::Candidate *daug = jet.daughter(idaug);
 	     int charge = daug->charge();
-	     if( charge == 0 ) continue;	     
+	     //CIRKOVICif( charge == 0 ) continue;	     
 	     
 	     float daugPt = daug->pt();
 
@@ -1915,8 +1930,11 @@ void FlatTreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
      }
    
    if( (applyMETFilters_ && passMETFilters) || !applyMETFilters_ ) // MET filters
+   {}//CIRKOVIC
+    if (true)//CIRKOVIC
      {
-	if( nElecPass+nMuonPass > 0 ) // skim
+	//CIRKOVICif( nElecPass+nMuonPass > 0 ) // skim
+      if (true)//CIRKOVIC
 	  {	     
 	     ftree->tree->Fill();
 	  }

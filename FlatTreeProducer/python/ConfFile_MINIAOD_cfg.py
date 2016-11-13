@@ -41,14 +41,19 @@ else:
 
 process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
     
-corName="Spring16_25nsV6_DATA"
+corName = None
+if options.isData:
+    corName="Spring16_25nsV6_DATA"
+else:
+    corName="Spring16_25nsV6_MC"
 corTag="JetCorrectorParametersCollection_"+corName
 #if options.isData:
 #    corName="Fall15_25nsV2_DATA"
 #    corTag="JetCorrectorParametersCollection_"+corName
 dBFile=corName+".db"
 
-if options.isData:
+#if options.isData:
+if True:
     process.load("CondCore.CondDB.CondDB_cfi")
     process.jec = cms.ESSource("PoolDBESSource",
                                DBParameters = cms.PSet(
@@ -173,8 +178,9 @@ from RecoMET.METProducers.testInputFiles_cff import recoMETtestInputFiles
 process.source = cms.Source("PoolSource",
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"), # WARNING / FIXME for test only !
     fileNames = cms.untracked.vstring(
-              '/store/mc/RunIISpring16MiniAODv1/ttHToNonbb_M125_13TeV_powheg_pythia8/MINIAODSIM/PUSpring16RAWAODSIM_80X_mcRun2_asymptotic_2016_v3-v1/50000/0ADF7BAE-0914-E611-B788-0025905A6068.root'
+#              '/store/mc/RunIISpring16MiniAODv1/ttHToNonbb_M125_13TeV_powheg_pythia8/MINIAODSIM/PUSpring16RAWAODSIM_80X_mcRun2_asymptotic_2016_v3-v1/50000/0ADF7BAE-0914-E611-B788-0025905A6068.root'
 #              '/store/data/Run2016B/SingleElectron/MINIAOD/PromptReco-v2/000/273/158/00000/26868D6F-4A1A-E611-8916-02163E011D33.root'
+              '/store/mc/RunIISpring16MiniAODv2/TT_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext3-v1/00000/0064B539-803A-E611-BDEA-002590D0B060.root'
         )
 )
 
